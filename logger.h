@@ -24,7 +24,6 @@
 namespace logger {
 
 #if not ENABLE_SLOG
-    const std::filesystem::path logFile;
     enum class LogLevel : const char
     {
         Trace = 'T',
@@ -35,6 +34,8 @@ namespace logger {
         Fatal = 'F'
     };
 
+    extern const std::filesystem::path logFile;
+    
     extern "C" bool SetLogFile(const char* path);
     extern "C" void ExternalLog(LogLevel level, const char* format);
 
