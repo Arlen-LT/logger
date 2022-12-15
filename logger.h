@@ -21,9 +21,9 @@
 #include <unistd.h>
 #endif
 
-#if not ENABLE_SLOG
 namespace logger {
 
+#if not ENABLE_SLOG
     const std::filesystem::path logFile;
     enum class LogLevel : const char
     {
@@ -88,13 +88,12 @@ namespace logger {
             }(std::index_sequence_for<Args...>{});
 
             *os << "\n";
+#endif // ENABLE_STD_FORMAT
         }
     };
+
     template <typename... Args>
     Log(LogLevel, const char*, Args&&...) -> Log<Args...>;
-#endif
-}
-using namespace logger;
 
 #else // ENABLE_SLOG
 enum LogLevel
@@ -111,6 +110,8 @@ enum LogLevel
     slog_tag("Log", 3 - x, y"\n", ##__VA_ARGS__);            \
 } while (0)
 #endif // ENABLE_SLOG
+}
+using namespace logger;
 
 #define CHECK_VARIABLE(x, y) do {                             \
    Log(LogLevel::Debug, #x": " y, x);                         \

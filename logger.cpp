@@ -8,7 +8,7 @@ namespace logger {
         return std::filesystem::exists(const_cast<std::filesystem::path&>(logFile) = std::filesystem::u8path(path)); //TODO: change all string to u8string.
     }
 
-    extern "C" void ExternalLog(LogLevel level, const char* format)
+    void ExternalLog(LogLevel level, const char* format)
     {
         Log(level, format);
     }
