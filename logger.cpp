@@ -1,6 +1,5 @@
 #include "logger.h"
 
-#if not ENABLE_SLOG
 namespace logger {
 
     const std::filesystem::path logFile;
@@ -15,4 +14,3 @@ namespace logger {
     }
 
 }// namespace logger
-#endif // ENABLE_SLOG
