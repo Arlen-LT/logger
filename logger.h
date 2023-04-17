@@ -22,7 +22,7 @@
 #endif
 
 namespace logger {
-
+#if not ENABLE_SLOG
     enum class LogLevel : const char
     {
         Trace = 'T',
@@ -55,7 +55,7 @@ namespace logger {
                 << "[" << static_cast<char>(level) << "]"
                 << "[thread " << gettid() << "] ";
 #if __cpp_lib_source_location
-            *os << location.file_name()
+            * os << location.file_name()
                 << "(" << location.line() << "," << location.column() << ","
                 << std::quoted(location.function_name())
                 << "): ";
@@ -77,7 +77,7 @@ namespace logger {
                             obj == nullptr ? *os << "(runtime nullptr)" : *os << obj;
                         else
                             *os << obj;
-                        ++it;
+                        it += 2;
                         break;
                     }
                     else
@@ -99,10 +99,34 @@ namespace logger {
 
     template <typename... Args>
     Log(LogLevel, const char*, Args&&...) -> Log<Args...>;
+#else // ENABLE_SLOG
+#include "slog.h"
+    enum LogLevel
+    {
+        Trace = L_TRACE,
+        Debug = L_DEBUG,
+        Info = L_INFO,
+        Warning = L_WARN,
+        Error = L_ERR,
+        Fatal = L_FATAL
+    };
+#define Log(x, y, ...) do {                                    \
+    slog_tag("DLNAModule", x, y"\n", ##__VA_ARGS__);            \
+} while (0)
+#endif // ENABLE_SLOG
 }
 using namespace logger;
 
+#if DEBUG
 #define CHECK_VARIABLE(x, y) do {                             \
    Log(LogLevel::Debug, #x": " y, x);                         \
 } while (0);
+
+#define TRACE(x) do {                               \
+   Log(LogLevel::Trace, x);                         \
+} while (0);
+#else
+#define CHECK_VARIABLE(x, y) ((void)0)
+#define TRACE(x) ((void)0)
+#endif
 
