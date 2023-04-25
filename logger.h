@@ -21,7 +21,8 @@
 #include <unistd.h>
 #endif
 
-namespace logger {
+namespace logger
+{
 #if not ENABLE_SLOG
     enum class LogLevel : const char
     {
@@ -35,62 +36,69 @@ namespace logger {
 
     extern const std::filesystem::path logFile;
 
-    extern "C" bool SetLogFile(const char* path);
-    extern "C" void ExternalLog(LogLevel level, const char* format);
+    extern "C" bool SetLogFile(const char *path);
+    extern "C" void ExternalLog(LogLevel level, const char *format);
 
     template <typename... Args>
     struct Log
     {
-        Log(LogLevel level, const char* format, Args&&... args
+        Log(LogLevel level, const char *format, Args &&...args
 #if __cpp_lib_source_location
-            , const std::source_location& location = std::source_location::current()
+            ,
+            const std::source_location &location = std::source_location::current()
 #endif
         )
         {
-            std::ofstream logStream{ logFile, std::ios::out | std::ios::app };
-            std::ostream* os = logStream.is_open() ? &logStream : &std::cout;
+            std::ofstream logStream{logFile, std::ios::out | std::ios::app};
+            std::ostream *os = logStream.is_open() ? &logStream : &std::cout;
             time_t current = std::time(nullptr);
             *os << std::left
                 << std::put_time(std::localtime(&current), "%F %T ")
                 << "[" << static_cast<char>(level) << "]"
                 << "[thread " << gettid() << "] ";
 #if __cpp_lib_source_location
-            * os << location.file_name()
+            *os << location.file_name()
                 << "(" << location.line() << "," << location.column() << ","
                 << std::quoted(location.function_name())
                 << "): ";
 #endif
 #if __cpp_lib_format and ENABLE_STD_FORMAT
-            * os << std::vformat(std::string_view{ format }, std::make_format_args(args...)) << "\n";
+            *os << std::vformat(std::string_view{format}, std::make_format_args(args...)) << "\n";
 #else
-            std::string_view sv{ format };
-            auto it = sv.begin();
-            auto TryInsert = [&sv, &it, &os]<typename T>(size_t n, T obj)
+            std::string_view sv{format};
+            if constexpr (sizeof...(Args) == 0)
+                *os << sv;
+            else
             {
-                for (; it != sv.end(); ++it)
-                {
-                    if (*it == '%')
-                    {
-                        if constexpr (std::is_null_pointer_v<T>)
-                            *os << "(compile-time nullptr)";
-                        else if constexpr (std::is_pointer_v<T>)
-                            obj == nullptr ? *os << "(runtime nullptr)" : *os << obj;
-                        else
-                            *os << obj;
-                        it += 2;
-                        break;
-                    }
-                    else
-                    {
-                        *os << *it;
-                    }
-                }
-            };
 
-            [&] <std::size_t... N>(std::index_sequence<N...>)
-            {
-                ((TryInsert(N, std::get<N>(std::forward_as_tuple(args...)))), ...);
-            }(std::index_sequence_for<Args...>{});
+                auto TryInsert = [&sv, &os]<typename T>(size_t n, T obj)
+                {
+                    for (auto it = sv.begin(); it != sv.end(); ++it)
+                    {
+                        if (*it == '%')
+                        {
+                            if constexpr (std::is_null_pointer_v<T>)
+                                *os << "(compile-time nullptr)";
+                            else if constexpr (std::is_pointer_v<T>)
+                                obj == nullptr ? *os << "(runtime nullptr)" : *os << obj;
+                            else
+                                *os << obj;
+                            it += 2;
+                            break;
+                        }
+                        else
+                        {
+                            *os << *it;
+                        }
+                    }
+                };
+
+                [&]<std::size_t... N>(std::index_sequence<N...>)
+                {
+                    ((TryInsert(N, std::get<N>(std::forward_as_tuple(args...)))), ...);
+                }
+                (std::index_sequence_for<Args...>{});
+            }
 
             *os << "\n";
 #endif // ENABLE_STD_FORMAT
@@ -98,7 +106,7 @@ namespace logger {
     };
 
     template <typename... Args>
-    Log(LogLevel, const char*, Args&&...) -> Log<Args...>;
+    Log(LogLevel, const char *, Args &&...) -> Log<Args...>;
 #else // ENABLE_SLOG
 #include "slog.h"
     enum LogLevel
@@ -110,23 +118,37 @@ namespace logger {
         Error = L_ERR,
         Fatal = L_FATAL
     };
-#define Log(x, y, ...) do {                                    \
-    slog_tag("DLNAModule", x, y"\n", ##__VA_ARGS__);            \
-} while (0)
+#define Log(x, y, ...)                                    \
+    do                                                    \
+    {                                                     \
+        slog_tag("DLNAModule", x, y "\n", ##__VA_ARGS__); \
+    } while (0)
 #endif // ENABLE_SLOG
 }
 using namespace logger;
 
 #if DEBUG
-#define CHECK_VARIABLE(x, y) do {                             \
-   Log(LogLevel::Debug, #x": " y, x);                         \
-} while (0);
+#define CHECK_VARIABLE(x, y)                \
+    do                                      \
+    {                                       \
+        Log(LogLevel::Debug, #x ": " y, x); \
+    } while (0);
 
-#define TRACE(x) do {                               \
-   Log(LogLevel::Trace, x);                         \
-} while (0);
+#define TRACE(x)                 \
+    do                           \
+    {                            \
+        Log(LogLevel::Trace, x); \
+    } while (0);
 #else
-#define CHECK_VARIABLE(x, y) ((void)0)
-#define TRACE(x) ((void)0)
-#endif
+#define CHECK_VARIABLE(x, y)                \
+    do                                      \
+    {                                       \
+        Log(LogLevel::Debug, #x ": " y, x); \
+    } while (0);
 
+#define TRACE(x)                 \
+    do                           \
+    {                            \
+        Log(LogLevel::Trace, x); \
+    } while (0);
+#endif
