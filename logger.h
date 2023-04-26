@@ -37,7 +37,6 @@ namespace logger
     extern const std::filesystem::path logFile;
 
     extern "C" bool SetLogFile(const char *path);
-    extern "C" void ExternalLog(LogLevel level, const char *format);
 
     template <typename... Args>
     struct Log
@@ -127,6 +126,8 @@ namespace logger
         slog_tag(SLOG_TAG, x, y "\n", ##__VA_ARGS__); \
     } while (0)
 #endif // ENABLE_SLOG
+
+    //extern "C" void ExternalLog(LogLevel level, const char *format);
 }
 using namespace logger;
 
