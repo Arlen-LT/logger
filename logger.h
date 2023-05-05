@@ -95,8 +95,7 @@ namespace logger
                 [&]<std::size_t... N>(std::index_sequence<N...>)
                 {
                     ((TryInsert(N, std::get<N>(std::forward_as_tuple(args...)))), ...);
-                }
-                (std::index_sequence_for<Args...>{});
+                }(std::index_sequence_for<Args...>{});
             }
 
             *os << "\n";
@@ -127,7 +126,7 @@ namespace logger
     } while (0)
 #endif // ENABLE_SLOG
 
-    //extern "C" void ExternalLog(LogLevel level, const char *format);
+    // extern "C" void ExternalLog(LogLevel level, const char *format);
 }
 using namespace logger;
 
@@ -144,15 +143,6 @@ using namespace logger;
         Log(LogLevel::Trace, x); \
     } while (0);
 #else
-#define CHECK_VARIABLE(x, y)                \
-    do                                      \
-    {                                       \
-        Log(LogLevel::Debug, #x ": " y, x); \
-    } while (0);
-
-#define TRACE(x)                 \
-    do                           \
-    {                            \
-        Log(LogLevel::Trace, x); \
-    } while (0);
+#define CHECK_VARIABLE(x, y) ((void)0)
+#define TRACE(x) ((void)0)
 #endif
