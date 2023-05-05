@@ -10,7 +10,7 @@ namespace logger
     }
 #endif
 
-    extern "C" void ExternalLog(LogLevel level, const char *format)
+    void ExternalLog(LogLevel level, const char *format)
     {
 #if ENABLE_SLOG
         slog_tag(SLOG_TAG, level, format);

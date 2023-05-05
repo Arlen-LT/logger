@@ -126,7 +126,7 @@ namespace logger
     } while (0)
 #endif // ENABLE_SLOG
 
-    // extern "C" void ExternalLog(LogLevel level, const char *format);
+    extern "C" void ExternalLog(LogLevel level, const char *format);
 }
 using namespace logger;
 
