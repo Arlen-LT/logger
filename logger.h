@@ -21,6 +21,12 @@
 #include <unistd.h>
 #endif
 
+#if _WIN64
+#define LOGGER_EXPORT __declspec(dllexport)
+#else
+#define LOGGER_EXPORT
+#endif
+
 namespace logger
 {
 #if not ENABLE_SLOG
@@ -36,7 +42,7 @@ namespace logger
 
     extern const std::filesystem::path logFile;
 
-    extern "C" bool SetLogFile(const char *path);
+    extern "C" LOGGER_EXPORT bool SetLogFile(const char *path);
 
     template <typename... Args>
     struct Log
@@ -126,7 +132,7 @@ namespace logger
     } while (0)
 #endif // ENABLE_SLOG
 
-    extern "C" void ExternalLog(LogLevel level, const char *format);
+    extern "C" LOGGER_EXPORT void ExternalLog(LogLevel level, const char *format);
 }
 using namespace logger;
 
@@ -146,3 +152,4 @@ using namespace logger;
 #define CHECK_VARIABLE(x, y) ((void)0)
 #define TRACE(x) ((void)0)
 #endif
+#undef LOGGER_EXPORT
