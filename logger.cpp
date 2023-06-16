@@ -10,12 +10,12 @@ namespace logger
     }
 #endif
 
-    void ExternalLog(LogLevel level, const char *format)
+    void ExternalLog(LogLevel level, const char *content)
     {
 #if ENABLE_SLOG
-        slog_tag(SLOG_TAG, level, format);
+        slog_tag(SLOG_TAG, level, "%s\n", content);
 #else
-        Log(level, format);
+        Log(level, "%s", content);
 #endif
     }
 } // namespace logger
