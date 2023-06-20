@@ -5,6 +5,7 @@
 #include <ostream>
 #include <fstream>
 #include <filesystem>
+#include <regex>
 
 #if __cpp_lib_format
 #include <format>
@@ -67,8 +68,9 @@ namespace logger
                 << std::quoted(location.function_name())
                 << "): ";
 #endif
-#if __cpp_lib_format and ENABLE_STD_FORMAT
-            *os << std::vformat(std::string_view{format}, std::make_format_args(args...)) << "\n";
+#if __cpp_lib_format
+            *os << std::vformat(std::regex_replace(format, std::regex(R"(%(?:\d+\$)?[-+0 #]*\d*(?:\.\d+)?[hljztL]*[diouxXfeEgGaAcspn])"), "{}")
+                , std::make_format_args(args...)) << "\n";
 #else
             std::string_view sv{format};
             if constexpr (sizeof...(Args) == 0)
