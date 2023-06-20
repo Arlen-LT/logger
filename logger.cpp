@@ -2,7 +2,7 @@
 
 namespace logger
 {
-#if not ENABLE_SLOG
+#ifndef ENABLE_SLOG
     const std::filesystem::path logFile;
     bool SetLogFile(const char *path)
     {
@@ -12,7 +12,7 @@ namespace logger
 
     void ExternalLog(LogLevel level, const char *content)
     {
-#if ENABLE_SLOG
+#ifdef ENABLE_SLOG
         slog_tag(SLOG_TAG, level, "%s\n", content);
 #else
         Log(level, "%s", content);

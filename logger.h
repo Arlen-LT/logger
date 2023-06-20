@@ -30,7 +30,7 @@
 
 namespace logger
 {
-#if not ENABLE_SLOG
+#ifndef ENABLE_SLOG
     enum class LogLevel : const char
     {
         Trace = 'T',
