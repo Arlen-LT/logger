@@ -35,7 +35,6 @@
 #include "slog.h"
 #else
 enum { L_FATAL, L_ERR, L_WARN, L_INFO, L_STATUS, L_V, L_DEBUG, L_TRACE, L_STATS, L_MAX = L_STATS };
-static inline void slog_tag(const char* tag, int lev, const char* format, ...) {}
 #endif
 
 namespace logger
@@ -55,11 +54,6 @@ namespace logger
 
     namespace {
         const std::filesystem::path logFile;
-#if ENABLE_SLOG
-        bool enable_slog = true;
-#else
-        bool enable_slog = false;
-#endif
     }
 
     template <typename... Args>
@@ -71,11 +65,10 @@ namespace logger
 #endif
         )
         {
-            if (enable_slog)
-            {
-                slog_tag(SLOG_TAG, static_cast<int>(level), format, args...);
-                return;
-            }
+#if ENABLE_SLOG
+            slog_tag(SLOG_TAG, static_cast<int>(level), format, args...);
+            return;
+#endif
 
             std::string content;
             std::time_t t = std::time(nullptr);
