@@ -30,26 +30,36 @@
 #else
 #define LOGGER_EXPORT
 #endif
+
+#if ENABLE_SLOG
 #include "slog.h"
+#else
+enum { L_FATAL, L_ERR, L_WARN, L_INFO, L_STATUS, L_V, L_DEBUG, L_TRACE, L_STATS, L_MAX = L_STATS };
+static inline void slog_tag(const char* tag, int lev, const char* format, ...) {}
+#endif
 
 namespace logger
 {
-     enum class LogLevel : int
-     {
-         Trace = L_TRACE,
-         Debug = L_DEBUG,
-         Info = L_INFO,
-         Warning = L_WARN,
-         Error = L_ERR,
-         Fatal = L_FATAL
-     };
+    enum class LogLevel : int
+    {
+        Trace = L_TRACE,
+        Debug = L_DEBUG,
+        Info = L_INFO,
+        Warning = L_WARN,
+        Error = L_ERR,
+        Fatal = L_FATAL
+    };
 
     extern "C" LOGGER_EXPORT bool SetLogFile(const char* path);
     extern "C" LOGGER_EXPORT void ExternalLog(LogLevel level, const char* format);
 
     namespace {
         const std::filesystem::path logFile;
+#if ENABLE_SLOG
         bool enable_slog = true;
+#else
+        bool enable_slog = false;
+#endif
     }
 
     template <typename... Args>
@@ -73,10 +83,10 @@ namespace logger
 #if __cpp_lib_source_location
             fmt::format_to(std::back_inserter(content), "{}({},{}): ", location.file_name(), location.line(), location.function_name());
 #endif
-#if ENABLE_OLD_C_FORMAT_COMPATIBILITY
-            content += fmt::vsprintf(std::back_inserter(content), format, fmt::make_format_args(args...));
-#else
+#if USE_CXX_FORMAT
             fmt::vformat_to(std::back_inserter(content), format, fmt::make_format_args(args...));
+#else
+            content += fmt::sprintf(format, args...);
 #endif
             if (logFile.empty())
             {
