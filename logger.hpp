@@ -61,7 +61,7 @@ namespace logger
         )
         {
 #if ENABLE_SLOG
-            slog_tag(SLOG_TAG, static_cast<int>(level), format, args...);
+            slog_tag(SLOG_TAG, static_cast<int>(level), "%s\n", fmt::sprintf(format, args...).c_str());
             return;
 #endif
 
