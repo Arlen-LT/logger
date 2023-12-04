@@ -1,3 +1,6 @@
+#include <range/v3/range.hpp>
+#include <range/v3/view.hpp>
+
 #include "logger.hpp"
 
 namespace logger
@@ -10,5 +13,17 @@ namespace logger
     void ExternalLog(LogLevel level, const char *content)
     {
         Log(level, "%s", content);
+    }
+
+    std::string log_binary_data(const unsigned char *const src, int size, int chunk_size)
+    {
+        std::string content;
+        auto v = std::vector<unsigned char>{src, src + size};
+        const auto data_chunk = v | ranges::views::chunk(chunk_size);
+        for (auto chunk : data_chunk)
+        {
+            fmt::format_to(std::back_inserter(content), "{:02X}\n", fmt::join(chunk, " "));
+        }
+        return content;
     }
 }

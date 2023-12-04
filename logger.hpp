@@ -46,6 +46,7 @@ namespace logger
 
     extern "C" LOGGER_EXPORT bool SetLogFile(const char* path);
     extern "C" LOGGER_EXPORT void ExternalLog(LogLevel level, const char* format);
+    std::string log_binary_data(const unsigned char *const src, int size, int chunk_size);
 
     namespace {
         const std::filesystem::path logFile;
@@ -61,7 +62,11 @@ namespace logger
         )
         {
 #if ENABLE_SLOG
+#if USE_CXX_FORMAT
+            slog_tag(SLOG_TAG, static_cast<int>(level), "%s\n",fmt::vformat(format, fmt::make_format_args(args...)).c_str());
+#else
             slog_tag(SLOG_TAG, static_cast<int>(level), "%s\n", fmt::sprintf(format, args...).c_str());
+#endif
             return;
 #endif
 
