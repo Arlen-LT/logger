@@ -12,7 +12,11 @@ namespace logger
 
     void ExternalLog(LogLevel level, const char *content)
     {
+#if USE_CXX_FORMAT
+        Log(level, "{:s}", content);
+#else
         Log(level, "%s", content);
+#endif
     }
 
     std::string log_binary_data(const unsigned char *const src, int size, int chunk_size)

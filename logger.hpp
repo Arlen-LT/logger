@@ -61,37 +61,44 @@ namespace logger
 #endif
         )
         {
+            try
+            {
 #if ENABLE_SLOG
 #if USE_CXX_FORMAT
-            slog_tag(SLOG_TAG, static_cast<int>(level), "%s\n",fmt::vformat(format, fmt::make_format_args(args...)).c_str());
+                slog_tag(SLOG_TAG, static_cast<int>(level), "%s\n", fmt::vformat(format, fmt::make_format_args(args...)).c_str());
 #else
-            slog_tag(SLOG_TAG, static_cast<int>(level), "%s\n", fmt::sprintf(format, args...).c_str());
+                slog_tag(SLOG_TAG, static_cast<int>(level), "%s\n", fmt::sprintf(format, args...).c_str());
 #endif
-            return;
+                return;
 #endif
 
-            std::string content;
-            std::time_t t = std::time(nullptr);
-            fmt::format_to(std::back_inserter(content), "{:%Y-%m-%d %H:%M:%S} [{}][{}] ", fmt::localtime(t), static_cast<int>(level), gettid());
+                std::string content;
+                std::time_t t = std::time(nullptr);
+                fmt::format_to(std::back_inserter(content), "{:%Y-%m-%d %H:%M:%S} [{}][{}] ", fmt::localtime(t), static_cast<int>(level), gettid());
 #if __cpp_lib_source_location
-            fmt::format_to(std::back_inserter(content), "{}({},{}): ", location.file_name(), location.line(), location.function_name());
+                fmt::format_to(std::back_inserter(content), "{}({},{}): ", location.file_name(), location.line(), location.function_name());
 #endif
 #if USE_CXX_FORMAT
-            fmt::vformat_to(std::back_inserter(content), format, fmt::make_format_args(args...));
+                fmt::vformat_to(std::back_inserter(content), format, fmt::make_format_args(args...));
 #else
-            content += fmt::sprintf(format, args...);
+                content += fmt::sprintf(format, args...);
 #endif
-            if (logFile.empty())
-            {
-                fmt::print("{}\n", content);
-                return;
-            }
+                if (logFile.empty())
+                {
+                    fmt::print("{:s}\n", content);
+                    return;
+                }
 
-            std::ofstream logStream{ logFile, std::ios::out | std::ios::app };
-            if (logStream.is_open())
+                std::ofstream logStream{logFile, std::ios::out | std::ios::app};
+                if (logStream.is_open())
+                {
+                    fmt::print(logStream, "{:s}\n", content);
+                    logStream.close();
+                }
+            }
+            catch (const fmt::format_error &e)
             {
-                fmt::print(logStream, "{}\n", content);
-                logStream.close();
+                std::cerr << "Formatting error: " << e.what() << std::endl;
             }
         }
     };
