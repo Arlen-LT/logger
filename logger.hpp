@@ -17,12 +17,6 @@
 #endif
 
 #if _WIN64
-#define gettid() std::this_thread::get_id()
-#else
-#include <unistd.h>
-#endif
-
-#if _WIN64
 #define LOGGER_EXPORT __declspec(dllexport)
 #else
 #define LOGGER_EXPORT
@@ -74,7 +68,7 @@ namespace logger
 
             std::string content;
             std::time_t t = std::time(nullptr);
-            fmt::format_to(std::back_inserter(content), "{:%Y-%m-%d %H:%M:%S} [{}][{}] ", fmt::localtime(t), static_cast<int>(level), gettid());
+            fmt::format_to(std::back_inserter(content), "{:%Y-%m-%d %H:%M:%S} [{}][{}] ", fmt::localtime(t), static_cast<int>(level), std::this_thread::get_id());
 #if __cpp_lib_source_location
             fmt::format_to(std::back_inserter(content), "{}({},{}): ", location.file_name(), location.line(), location.function_name());
 #endif
